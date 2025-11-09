@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EncodeForge</title>
-    <script src="JsBarcode.all.min.js"></script>
+    <script src="jsbarcode.min.js"></script>
     <script src="qrious.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -62,7 +62,7 @@
         }
 
         .container {
-            max-width: 320px;
+            max-width: 450px;
             margin: 0 auto;
             padding: 8px;
             background: var(--bg-secondary);
@@ -483,7 +483,7 @@
                 <i class="bi bi-type caps-icon" id="caps-toggle" onclick="toggleCaps()"></i>
                 <i class="bi bi-circle-half theme-icon" onclick="toggleTheme()"></i>
                 <div class="settings-container">
-                    <i class="bi bi-gear settings-icon" onclick="toggleSettings()"></i>
+                    <i class="bi bi-gear-fill settings-icon" onclick="toggleSettings()"></i>
                     <div id="settings-dropdown" class="settings-dropdown hidden">
                         <div id="qr-settings" class="settings-group">
                             <h3>QR Settings</h3>
@@ -639,7 +639,7 @@
                 return;
             }
 
-            if (rawText.length > 10) {
+            if (rawText.length > 15) {
                 console.log('Showing warning for long text');
                 pendingBarcodeText = rawText;
                 document.getElementById('barcode-text').value = rawText;
