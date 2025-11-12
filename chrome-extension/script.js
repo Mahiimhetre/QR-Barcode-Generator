@@ -1,3 +1,6 @@
+// Extension-adapted JavaScript - Uses chrome.storage instead of localStorage
+// All original functionality preserved with Chrome extension APIs
+
 // State
 const state = {
     currentTab: 'qr',
@@ -93,7 +96,17 @@ const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 const applyCasing = value => state.enforceUppercase ? value.toUpperCase() : value;
 const setDisplay = (element, show) => element?.classList.toggle('hidden', !show);
-const updateStorage = () => localStorage.setItem('savedCodes', JSON.stringify(state.savedCodes));
+
+// Extension-specific: Use chrome.storage instead of localStorage
+async function updateStorage() {
+    try {
+        await chrome.storage.local.set({ savedCodes: state.savedCodes });
+    } catch (error) {
+        console.error('Error saving to chrome.storage:', error);
+        // Fallback to localStorage if chrome.storage fails
+        localStorage.setItem('savedCodes', JSON.stringify(state.savedCodes));
+    }
+}
 
 // Legacy globals removed — code now uses `state.*` directly.
 
@@ -162,13 +175,18 @@ function generateBarcode() {
         if (generatedWidth >= previewWidth) {
             // Keep pending text so switchToQR can reuse it
             state.pendingBarcodeText = text;
-            $('#output').innerHTML = `
-                <div style="text-align: center; color: var(--danger); font-size: 12px; font-weight: 600; padding: 12px; background: rgba(220, 53, 69, 0.12); border-radius: 10px;">
-                    ⚠️ Generated barcode is too wide for the preview area<br>
-                    <button onclick="switchToQR()" style="margin-top: 10px; padding: 6px 16px; background: var(--accent-primary); color: #fff; border: none; border-radius: 999px; font-size: 11px;">
-                        Use QR Code Instead
-                    </button>
-                </div>`;
+            const warningDiv = document.createElement('div');
+            warningDiv.style.cssText = 'text-align: center; color: var(--danger); font-size: 12px; font-weight: 600; padding: 12px; background: rgba(220, 53, 69, 0.12); border-radius: 10px;';
+            warningDiv.innerHTML = '⚠️ Generated barcode is too wide for the preview area<br>';
+            
+            const switchBtn = document.createElement('button');
+            switchBtn.textContent = 'Use QR Code Instead';
+            switchBtn.style.cssText = 'margin-top: 10px; padding: 6px 16px; background: var(--accent-primary); color: #fff; border: none; border-radius: 999px; font-size: 11px;';
+            switchBtn.addEventListener('click', switchToQR);
+            warningDiv.appendChild(switchBtn);
+            
+            $('#output').innerHTML = '';
+            $('#output').appendChild(warningDiv);
             setDisplay($('#download-section'), false);
             return;
         }
@@ -313,50 +331,79 @@ function showPreviewModal(item, index) {
     const container = document.querySelector('.container');
     const modal = document.createElement('div');
     modal.className = 'preview-modal';
-    modal.innerHTML = `
-        <div class="preview-modal-content" onclick="event.stopPropagation()">
-            <div class="preview-modal-header">
-                <div class="preview-modal-title">${item.type.toUpperCase()} Code</div>
-                <div class="preview-modal-actions">
-                    <button class="preview-modal-btn delete" onclick="deleteFromPreview(${index})" title="Delete">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                    <button class="preview-modal-btn close" onclick="closePreviewModal()" title="Close">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="preview-modal-image">
-                <img src="${item.dataURL}" alt="${item.type} code">
-            </div>
-            <div class="preview-modal-info">
-                <div>${item.content}</div>
-                <div>${item.timestamp}</div>
-            </div>
-        </div>
-    `;
+    
+    // Create modal content structure (CSP-compliant, no inline handlers)
+    const modalContent = document.createElement('div');
+    modalContent.className = 'preview-modal-content';
+    modalContent.addEventListener('click', (e) => e.stopPropagation());
+    
+    const modalHeader = document.createElement('div');
+    modalHeader.className = 'preview-modal-header';
+    
+    const modalTitle = document.createElement('div');
+    modalTitle.className = 'preview-modal-title';
+    modalTitle.textContent = `${item.type.toUpperCase()} Code`;
+    
+    const modalActions = document.createElement('div');
+    modalActions.className = 'preview-modal-actions';
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'preview-modal-btn delete';
+    deleteBtn.title = 'Delete';
+    deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+    deleteBtn.addEventListener('click', () => deleteFromPreview(index));
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'preview-modal-btn close';
+    closeBtn.title = 'Close';
+    closeBtn.innerHTML = '<i class="bi bi-x"></i>';
+    closeBtn.addEventListener('click', closePreviewModal);
+    
+    modalActions.appendChild(deleteBtn);
+    modalActions.appendChild(closeBtn);
+    modalHeader.appendChild(modalTitle);
+    modalHeader.appendChild(modalActions);
+    
+    const modalImage = document.createElement('div');
+    modalImage.className = 'preview-modal-image';
+    const img = document.createElement('img');
+    img.src = item.dataURL;
+    img.alt = `${item.type} code`;
+    modalImage.appendChild(img);
+    
+    const modalInfo = document.createElement('div');
+    modalInfo.className = 'preview-modal-info';
+    const contentDiv = document.createElement('div');
+    contentDiv.textContent = item.content;
+    const timestampDiv = document.createElement('div');
+    timestampDiv.textContent = item.timestamp;
+    modalInfo.appendChild(contentDiv);
+    modalInfo.appendChild(timestampDiv);
+    
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalImage);
+    modalContent.appendChild(modalInfo);
+    modal.appendChild(modalContent);
 
     // Close on click outside
-    modal.addEventListener('click', closePreviewModal);
-
-    container.appendChild(modal);
-    container.classList.add('blur');
-    setTimeout(() => modal.classList.add('show'), 10);
-
-    // Close on background click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             closePreviewModal();
         }
     });
 
+    container.appendChild(modal);
+    container.classList.add('blur');
+    setTimeout(() => modal.classList.add('show'), 10);
+
     // Close on Escape key
-    document.addEventListener('keydown', function escListener(e) {
+    const escListener = (e) => {
         if (e.key === 'Escape') {
             closePreviewModal();
             document.removeEventListener('keydown', escListener);
         }
-    });
+    };
+    document.addEventListener('keydown', escListener);
 }
 
 function deleteFromPreview(index) {
@@ -391,7 +438,7 @@ function updatePagination() {
         const b = document.createElement('button');
         b.className = cls;
         b.innerHTML = html || '';
-        b.onclick = cb;
+        b.addEventListener('click', cb);
         return b;
     };
 
@@ -440,16 +487,37 @@ function updateGallery() {
         const actualIndex = state.savedCodes.indexOf(item);
         const itemDiv = document.createElement('div');
         itemDiv.className = 'gallery-card';
-        itemDiv.innerHTML = `
-            <button class="delete-btn" onclick="event.stopPropagation(); deleteItem(${actualIndex})" title="Delete">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            <div class="item-info">${item.content.length > 20 ? item.content.substring(0, 20) + '...' : item.content}</div>
-            <img src="${item.dataURL}" style="max-width: 100%; height: auto;">
-            <div class="item-info">${item.timestamp}</div>
-        `;
         itemDiv.setAttribute('data-type', item.type);
         itemDiv.style.cursor = 'pointer';
+        
+        // Create delete button (CSP-compliant)
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.title = 'Delete';
+        deleteBtn.innerHTML = '<i class="bi bi-x-lg"></i>';
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteItem(actualIndex);
+        });
+        
+        // Create content elements
+        const contentInfo = document.createElement('div');
+        contentInfo.className = 'item-info';
+        contentInfo.textContent = item.content.length > 20 ? item.content.substring(0, 20) + '...' : item.content;
+        
+        const img = document.createElement('img');
+        img.src = item.dataURL;
+        img.style.cssText = 'max-width: 100%; height: auto;';
+        
+        const timestampInfo = document.createElement('div');
+        timestampInfo.className = 'item-info';
+        timestampInfo.textContent = item.timestamp;
+        
+        itemDiv.appendChild(deleteBtn);
+        itemDiv.appendChild(contentInfo);
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(timestampInfo);
+        
         itemDiv.addEventListener('click', e => {
             if (!e.target.closest('.delete-btn')) showPreviewModal(item, actualIndex);
         });
@@ -506,14 +574,29 @@ function toggleSavedVisibility() {
     // Use the hidden class for consistent behavior
     $('#gallery-items')?.classList.toggle('hidden', !show);
     document.querySelector('.gallery-filters')?.classList.toggle('hidden', !show);
-document.querySelector('.galler y-clear-btn')?.classList.toggle('hidden', !show);
+    document.querySelector('.gallery-clear-btn')?.classList.toggle('hidden', !show);
 }
 
-function loadSavedCodes() {
-    const saved = localStorage.getItem('savedCodes');
-    if (saved) {
-        state.savedCodes = JSON.parse(saved);
-        updateGallery();
+// Extension-specific: Load saved codes from chrome.storage
+async function loadSavedCodes() {
+    try {
+        const result = await chrome.storage.local.get(['savedCodes']);
+        if (result.savedCodes) {
+            state.savedCodes = result.savedCodes;
+            updateGallery();
+        }
+    } catch (error) {
+        console.error('Error loading from chrome.storage:', error);
+        // Fallback to localStorage
+        const saved = localStorage.getItem('savedCodes');
+        if (saved) {
+            try {
+                state.savedCodes = JSON.parse(saved);
+                updateGallery();
+            } catch (e) {
+                console.error('Error parsing localStorage:', e);
+            }
+        }
     }
 }
 
@@ -583,8 +666,11 @@ window.dumpSavedCodes = () => console.log('savedCodes:', state.savedCodes.slice(
 window.getSavedCodes = () => state.savedCodes.slice();
 
 // Auto-generation
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     renderShortcuts();
+    // Load saved codes first
+    await loadSavedCodes();
+    
     // Input bindings
     $('#qr-text').addEventListener('input', e => {
         state.sharedText = e.target.value;
@@ -602,15 +688,67 @@ document.addEventListener('DOMContentLoaded', () => {
     ['barcode-format'].forEach(id => $(`#${id}`).addEventListener('change', generateBarcode));
     ['barcode-width','barcode-height','barcode-color','barcode-bg-color'].forEach(id => $(`#${id}`).addEventListener('input', generateBarcode));
 
-    // Load saved codes and initialize UI
-    loadSavedCodes();
+    // Initialize UI
     toggleClearIcon('qr'); toggleClearIcon('barcode');
     $('#qr-text').value = state.sharedText; $('#barcode-text').value = state.sharedText;
     if (state.sharedText.trim()) (state.currentTab === 'qr' ? generateQR() : generateBarcode());
 
+    // Event listeners for controls (replacing inline handlers for CSP compliance)
+    const capsToggle = $('#caps-toggle');
+    if (capsToggle) capsToggle.addEventListener('click', toggleCaps);
+
+    const themeToggle = $('#theme-toggle');
+    if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+
+    const infoIcon = $('.info-icon');
+    if (infoIcon) infoIcon.addEventListener('click', toggleInfo);
+
+    const settingsToggle = $('#settings-toggle');
+    if (settingsToggle) settingsToggle.addEventListener('click', toggleSettings);
+
+    // Tab buttons
+    $$('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.getAttribute('data-tab');
+            if (tab) switchTab(tab);
+        });
+    });
+
+    // Clear buttons
+    $$('.clear-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-clear');
+            if (type) clearInput(type);
+        });
+    });
+
+    // Download buttons
+    const saveBtn = $('#save-btn');
+    if (saveBtn) saveBtn.addEventListener('click', saveToPage);
+
+    const downloadPngBtn = $('#download-png-btn');
+    if (downloadPngBtn) downloadPngBtn.addEventListener('click', () => downloadCode('png'));
+
+    const downloadSvgBtn = $('#download-svg-btn');
+    if (downloadSvgBtn) downloadSvgBtn.addEventListener('click', () => downloadCode('svg'));
+
+    // Gallery controls
+    const toggleSaved = $('#toggle-saved');
+    if (toggleSaved) toggleSaved.addEventListener('change', toggleSavedVisibility);
+
+    $$('.filter-button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const filter = btn.getAttribute('data-filter');
+            if (filter) filterGallery(filter);
+        });
+    });
+
+    const clearGalleryBtn = $('#clear-gallery-btn');
+    if (clearGalleryBtn) clearGalleryBtn.addEventListener('click', clearGallery);
+
     // Close settings when clicking outside
     document.addEventListener('click', e => {
-        if (!e.target.closest('.settings-dropdown') && !e.target.closest('.settings-icon')) {
+        if (!e.target.closest('.settings-dropdown') && !e.target.closest('.settings-icon') && !e.target.closest('#settings-toggle')) {
             if (state.settingsOpen) toggleSettings();
         }
     });
@@ -625,3 +763,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+

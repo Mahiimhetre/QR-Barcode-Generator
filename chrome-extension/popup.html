@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CodeCraft — QR & Barcode Generator</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-
+    <link rel="stylesheet" href="assets/bootstrap-icons.css">
 </head>
-<body>
+<body class="popup">
+    <!-- View switcher button - allows switching to side panel -->
+    <button class="view-switcher" id="view-switcher" title="Open in Side Panel">
+        <i class="bi bi-layout-sidebar"></i>
+        <span>Side Panel</span>
+    </button>
+
     <div class="container">
         <header>
             <h1>
@@ -17,10 +22,10 @@
                 <small>QR & Barcode Generator</small>
             </h1>
             <div class="controls">
-                <i class="bi bi-type caps-icon" id="caps-toggle" onclick="toggleCaps()" title="Toggle Caps (Alt+C)"></i>
-                <i class="bi bi-circle-half theme-icon" onclick="toggleTheme()"></i>
+                <i class="bi bi-type caps-icon" id="caps-toggle" title="Toggle Caps (Alt+C)"></i>
+                <i class="bi bi-circle-half theme-icon" id="theme-toggle"></i>
                 <div class="info-container">
-                    <i class="bi bi-info-circle-fill info-icon" onclick="toggleInfo()" title="About & Shortcuts"></i>
+                    <i class="bi bi-info-circle-fill info-icon" title="About & Shortcuts"></i>
                     <div id="info-dropdown" class="info-dropdown hidden">
                         <h3>About CodeCraft</h3>
                         <p>CodeCraft helps you generate and customize QR codes and barcodes.</p>
@@ -35,7 +40,7 @@
                     </div>
                 </div>
                 <div class="settings-container">
-                    <i class="bi bi-gear-fill settings-icon" onclick="toggleSettings()"></i>
+                    <i class="bi bi-gear-fill settings-icon" id="settings-toggle"></i>
                     <div id="settings-dropdown" class="settings-dropdown hidden">
                         <div id="qr-settings" class="settings-group">
                             <h3>QR Settings</h3>
@@ -63,11 +68,11 @@
         </header>
 
         <nav class="tabs">
-            <button class="tab-btn active" data-tab="qr" onclick="switchTab('qr')" type="button" title="Press Shift+Tab to switch">
+            <button class="tab-btn active" data-tab="qr" type="button" title="Press Shift+Tab to switch">
                 <i class="bi bi-qr-code"></i>
                 <span>QR Code</span>
             </button>
-            <button class="tab-btn" data-tab="barcode" onclick="switchTab('barcode')" type="button" title="Press Shift+Tab to switch">
+            <button class="tab-btn" data-tab="barcode" type="button" title="Press Shift+Tab to switch">
                 <i class="bi bi-upc"></i>
                 <span>Barcode</span>
             </button>
@@ -77,13 +82,13 @@
             <div id="qr-input" class="field">
                 <div class="field-wrapper">
                     <textarea id="qr-text" placeholder="Enter text, URL, or content"></textarea>
-                    <i class="bi bi-x-circle clear-btn hidden" onclick="clearInput('qr')"></i>
+                    <i class="bi bi-x-circle clear-btn hidden" data-clear="qr"></i>
                 </div>
             </div>
             <div id="barcode-input" class="field hidden">
                 <div class="field-wrapper">
                     <input type="text" id="barcode-text" placeholder="Enter text or numbers">
-                    <i class="bi bi-x-circle clear-btn hidden" onclick="clearInput('barcode')"></i>
+                    <i class="bi bi-x-circle clear-btn hidden" data-clear="barcode"></i>
                 </div>
             </div>
         </div>
@@ -93,26 +98,26 @@
                 <div class="placeholder">Enter content to generate code</div>
             </div>
             <div id="download-section" class="actions hidden">
-                <button onclick="saveToPage()" title="Press Ctrl+S to pin"><i class="bi bi-pin-angle"></i> Pin</button>
-                <button onclick="downloadCode('png')"><i class="bi bi-cloud-download"></i> PNG</button>
-                <button onclick="downloadCode('svg')"><i class="bi bi-filetype-svg"></i> SVG</button>
+                <button id="save-btn" title="Press Ctrl+S to pin"><i class="bi bi-pin-angle"></i> Pin</button>
+                <button id="download-png-btn"><i class="bi bi-cloud-download"></i> PNG</button>
+                <button id="download-svg-btn"><i class="bi bi-filetype-svg"></i> SVG</button>
             </div>
         </div>
 
         <div id="saved-gallery" class="gallery hidden">
             <div class="gallery-header">
                 <div class="gallery-title">
-                    <input type="checkbox" id="toggle-saved" checked onchange="toggleSavedVisibility()">
+                    <input type="checkbox" id="toggle-saved" checked>
                     <label for="toggle-saved">Saved Codes</label>
                     <span class="saved-count hidden" title="Saved codes count">0</span>
                 </div>
                 <div class="gallery-filters">
-                    <button data-filter="all" onclick="filterGallery('all')" class="filter-button active" type="button">All</button>
-                    <button data-filter="qr" onclick="filterGallery('qr')" class="filter-button" type="button">QR</button>
-                    <button data-filter="barcode" onclick="filterGallery('barcode')" class="filter-button" type="button">Barcode</button>
+                    <button data-filter="all" class="filter-button active" type="button">All</button>
+                    <button data-filter="qr" class="filter-button" type="button">QR</button>
+                    <button data-filter="barcode" class="filter-button" type="button">Barcode</button>
                 </div>
             </div>
-            <button onclick="clearGallery()" class="gallery-clear-btn">Clear All</button>
+            <button id="clear-gallery-btn" class="gallery-clear-btn">Clear All</button>
             <div id="gallery-items" class="gallery-grid"></div>
             <div class="pagination-container"></div>
         </div>
@@ -121,5 +126,7 @@
     <script src="vendor/jsbarcode.min.js"></script>
     <script src="vendor/qrious.min.js"></script>
     <script src="script.js"></script>
+    <script src="popup.js"></script>
 </body>
 </html>
+

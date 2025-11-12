@@ -1,3 +1,4 @@
+/* Extension-adapted CSS - Same styles as original with minor adjustments for extension context */
 :root {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
@@ -37,6 +38,45 @@
     --danger: #dc3545;
     --shadow-light: rgba(0, 0, 0, 0.2);
     --shadow-medium: rgba(0, 0, 0, 0.2);
+}
+
+/* Extension-specific: View switcher button */
+.view-switcher {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 1001;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 4px 8px;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 4px var(--shadow-medium);
+    transition: all 0.2s ease;
+}
+
+.view-switcher:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+}
+
+/* Extension popup specific adjustments */
+body.popup {
+    min-width: 350px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body.sidepanel {
+    min-width: 300px;
+    width: 100%;
 }
 
 ::-webkit-scrollbar {
@@ -284,22 +324,32 @@
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    height: 100%;
+}
+
 body {
     background: var(--bg-primary);
     transition: all 0.3s ease;
-    min-width:250px;
+    min-width: 250px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 .container {
-    max-width: 80%;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
     padding: 8px;
     background: var(--bg-secondary);
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 4px 12px var(--shadow-light);
-    margin: 5px auto;
     position: relative;
     min-height: 300px;
+    box-sizing: border-box;
 }
 
 header {
@@ -359,8 +409,8 @@ header h1 small {
 
  .info-dropdown {
      position: absolute;
-     top: 28px; /* sit just below the icon */
-     right: 0;  /* align with icon on the right */
+     top: 28px;
+     right: 0;
      background: var(--bg-secondary);
      border: 1px solid var(--border-color);
      border-radius: 10px;
@@ -873,3 +923,4 @@ header h1 small {
 .hidden {
     display: none !important;
 }
+
