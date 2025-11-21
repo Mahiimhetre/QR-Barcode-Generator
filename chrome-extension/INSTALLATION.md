@@ -27,12 +27,7 @@ The extension will work without custom icons, but for a complete setup:
    - `icon16.png` (16x16 pixels)
    - `icon48.png` (48x48 pixels)
    - `icon128.png` (128x128 pixels)
-   - add this in manifest.json: 
-      - "icons": {
-      -   "16": "icons/icon16.png",
-      -   "48": "icons/icon48.png",
-      -   "128": "icons/icon128.png"
-      - },
+
 2. Place them in the `chrome-extension/icons/` folder
 
 3. Reload the extension

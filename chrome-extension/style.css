@@ -71,7 +71,6 @@ body.popup {
     width: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
 
 body.sidepanel {
@@ -345,7 +344,7 @@ body {
     margin: 0;
     padding: 8px;
     background: var(--bg-secondary);
-    border-radius: 16px;
+    border-radius: 12px;
     box-shadow: 0 4px 12px var(--shadow-light);
     position: relative;
     min-height: 300px;

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "CodeCraft",
+  "name": "CodeCraft - QR & Barcode Generator",
   "version": "1.0.0",
   "description": "Generate and customize QR codes and barcodes with a beautiful UI",
   "permissions": [
@@ -17,7 +17,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  
+ 
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

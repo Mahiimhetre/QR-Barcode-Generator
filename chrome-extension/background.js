@@ -4,27 +4,29 @@
 // Track side panel state
 let sidePanelOpen = false;
 
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === 'sidepanel') {
-    sidePanelOpen = true;
-    port.onDisconnect.addListener(() => {
-      sidePanelOpen = false;
-      chrome.action.setPopup({ popup: 'popup.html' });
-    });
-  }
-});
-
 // Note: chrome.action.onClicked doesn't fire when default_popup is set in manifest
 // So we handle popup blocking in popup.js itself
 
 // Listen for messages from popup or sidepanel
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'openSidePanel') {
-    sidePanelOpen = true;
-    sendResponse({ success: true });
+    // Get the window ID from sender or use current window
+    chrome.windows.getCurrent().then(window => {
+      chrome.sidePanel.open({ windowId: window.id });
+      sidePanelOpen = true; // Track that side panel is now open
+      // Disable popup when side panel opens
+      chrome.action.setPopup({ popup: '' });
+      sendResponse({ success: true });
+    }).catch(error => {
+      console.error('Error opening side panel:', error);
+      sendResponse({ success: false, error: error.message });
+    });
+    return true; // Keep message channel open for async response
   } else if (request.action === 'sidePanelOpened') {
     // Track that side panel is now open
     sidePanelOpen = true;
+    // Disable popup
+    chrome.action.setPopup({ popup: '' });
     sendResponse({ success: true });
   } else if (request.action === 'sidePanelClosed') {
     // Track that side panel is closed
