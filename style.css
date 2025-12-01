@@ -309,7 +309,7 @@ header {
     margin-bottom:25px;
 }
 
-header h1 {
+.branding {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -318,8 +318,21 @@ header h1 {
     color: var(--text-secondary);
 }
 
-header h1 span {
-    font-size: 20px;
+
+.brand-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.brand-text{
+    align-self: start;
+    display: grid;
+}
+
+.brand-text span {
+    font-size: 18px;
     background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
     -webkit-background-clip: text;
     background-clip: text;
@@ -327,16 +340,11 @@ header h1 span {
     font-weight: 700;
 }
 
-header h1 small {
-    font-size: 12px;
+.branding small {
+    font-size: 10px;
     color: var(--text-muted);
     font-weight: 400;
     margin-left: 4px;
-}
-
-.brand-icon {
-    font-size: 18px;
-    color: var(--accent-primary);
 }
 
 .controls {
@@ -367,7 +375,7 @@ header h1 small {
      padding: 12px;
      box-shadow: 0 4px 12px var(--shadow-light);
      z-index: 1000;
-     min-width: 220px;
+     min-width 220px;
      line-height: 1.4;
  }
  .info-dropdown::before {
