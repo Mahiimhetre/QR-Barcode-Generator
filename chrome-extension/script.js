@@ -22,7 +22,7 @@ const shortcuts = [
         const next = state.currentTab === 'qr' ? 'barcode' : 'qr';
         switchTab(next);
     }},
-    { key: 'Ctrl + S', description: 'Pin Code', preventDefault: true, handler: () => renderPin()},
+    { key: 'Ctrl + S', description: 'Save Code', preventDefault: true, handler: () => renderPin()},
     { key: 'Esc', description: 'Close Modal', preventDefault: false, handler: () => closePreviewModal() }
 ];
 
@@ -124,6 +124,11 @@ function updateOutput(canvas, error = false) {
     state.generatedCanvas = canvas;
     $('#output').innerHTML = '';
     $('#output').appendChild(canvas);
+    
+    // Make canvas clickable to auto-save
+    canvas.style.cursor = 'pointer';
+    canvas.onclick = () => saveToPage();
+    
     setDisplay($('#download-section'), true);
 }
 
@@ -575,6 +580,7 @@ function toggleSavedVisibility() {
     $('#gallery-items')?.classList.toggle('hidden', !show);
     document.querySelector('.gallery-filters')?.classList.toggle('hidden', !show);
     document.querySelector('.gallery-clear-btn')?.classList.toggle('hidden', !show);
+    document.querySelector('.pagination-container')?.classList.toggle('hidden', !show);
 }
 
 // Extension-specific: Load saved codes from chrome.storage
@@ -684,9 +690,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Settings bindings (grouped)
-    ['qr-size','qr-color','qr-bg-color'].forEach(id => $(`#${id}`).addEventListener('input', generateQR));
+    const qrSizeInput = $('#qr-size');
+    const qrSizeValue = $('#qr-size-value');
+    if (qrSizeInput && qrSizeValue) {
+        qrSizeInput.addEventListener('input', (e) => {
+            qrSizeValue.textContent = e.target.value;
+            generateQR();
+        });
+    }
+    
+    const barcodeWidthInput = $('#barcode-width');
+    const barcodeWidthValue = $('#barcode-width-value');
+    if (barcodeWidthInput && barcodeWidthValue) {
+        barcodeWidthInput.addEventListener('input', (e) => {
+            barcodeWidthValue.textContent = e.target.value;
+            generateBarcode();
+        });
+    }
+    
+    const barcodeHeightInput = $('#barcode-height');
+    const barcodeHeightValue = $('#barcode-height-value');
+    if (barcodeHeightInput && barcodeHeightValue) {
+        barcodeHeightInput.addEventListener('input', (e) => {
+            barcodeHeightValue.textContent = e.target.value;
+            generateBarcode();
+        });
+    }
+    
+    ['qr-color','qr-bg-color'].forEach(id => $(`#${id}`).addEventListener('input', generateQR));
     ['barcode-format'].forEach(id => $(`#${id}`).addEventListener('change', generateBarcode));
-    ['barcode-width','barcode-height','barcode-color','barcode-bg-color'].forEach(id => $(`#${id}`).addEventListener('input', generateBarcode));
+    ['barcode-color','barcode-bg-color'].forEach(id => $(`#${id}`).addEventListener('input', generateBarcode));
 
     // Initialize UI
     toggleClearIcon('qr'); toggleClearIcon('barcode');
@@ -723,9 +756,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Download buttons
-    const saveBtn = $('#save-btn');
-    if (saveBtn) saveBtn.addEventListener('click', saveToPage);
-
     const downloadPngBtn = $('#download-png-btn');
     if (downloadPngBtn) downloadPngBtn.addEventListener('click', () => downloadCode('png'));
 

@@ -30,7 +30,7 @@
                             <li><strong>Barcodes:</strong> CODE128, CODE39, EAN13 supported.</li>
                             <li><strong>Customization:</strong> Size, color, and background options.</li>
                             <li><strong>Download:</strong> Export as PNG or SVG files.</li>
-                            <li><strong>Save:</strong> Pin your favorite codes for later.</li>
+                            <li><strong>Save:</strong> Click on generated code to save it.</li>
                         </ul>
                         <div id="shortcuts-container"></div>
                     </div>
@@ -40,9 +40,13 @@
                     <div id="settings-dropdown" class="settings-dropdown hidden">
                         <div id="qr-settings" class="settings-group">
                             <h3>QR Settings</h3>
-                            <label>Size: <input type="number" id="qr-size" value="200" min="100" max="1000"></label>
-                            <label>Color: <input type="color" id="qr-color" value="#000000"></label>
-                            <label>Background: <input type="color" id="qr-bg-color" value="#ffffff"></label>
+                            <label>Size: <span id="qr-size-value">200</span>px
+                                <input type="range" id="qr-size" value="200" min="100" max="500" step="10">
+                            </label>
+                            <div class="color-row">
+                                <label>Color: <input type="color" id="qr-color" value="#000000"></label>
+                                <label>Background: <input type="color" id="qr-bg-color" value="#ffffff"></label>
+                            </div>
                         </div>
                         <div id="barcode-settings" class="settings-group hidden">
                             <h3>Barcode Settings</h3>
@@ -53,10 +57,16 @@
                                     <option value="EAN13">EAN13</option>
                                 </select>
                             </label>
-                            <label>Width: <input type="number" id="barcode-width" value="2" min="1" max="5" step="0.1"></label>
-                            <label>Height: <input type="number" id="barcode-height" value="100" min="50" max="300"></label>
-                            <label>Color: <input type="color" id="barcode-color" value="#000000"></label>
-                            <label>Background: <input type="color" id="barcode-bg-color" value="#ffffff"></label>
+                            <label>Width: <span id="barcode-width-value">2</span>
+                                <input type="range" id="barcode-width" value="2" min="1" max="5" step="0.1">
+                            </label>
+                            <label>Height: <span id="barcode-height-value">100</span>px
+                                <input type="range" id="barcode-height" value="100" min="50" max="300" step="5">
+                            </label>
+                            <div class="color-row">
+                                <label>Color: <input type="color" id="barcode-color" value="#000000"></label>
+                                <label>Background: <input type="color" id="barcode-bg-color" value="#ffffff"></label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -94,7 +104,6 @@
                 <div class="placeholder">Enter content to generate code</div>
             </div>
             <div id="download-section" class="actions hidden">
-                <button id="save-btn" title="Press Ctrl+S to pin"><i class="bi bi-pin-angle"></i> Pin</button>
                 <button id="download-png-btn"><i class="bi bi-cloud-download"></i> PNG</button>
                 <button id="download-svg-btn"><i class="bi bi-filetype-svg"></i> SVG</button>
             </div>
@@ -118,6 +127,10 @@
             <div class="pagination-container"></div>
         </div>
     </div>
+
+    <footer class="footer">
+        <p>Made with ❤️ by CodeCraft | © 2025 All Rights Reserved</p>
+    </footer>
 
     <script src="vendor/jsbarcode.min.js"></script>
     <script src="vendor/qrious.min.js"></script>
